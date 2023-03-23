@@ -54,6 +54,7 @@ XT_LIBRARY = "org.polarsys.capella.core.data.capellamodeller:Library"
 XT_SYSENG = "org.polarsys.capella.core.data.capellamodeller:SystemEngineering"
 
 
+@common.xtype_handler(None, XT_PROJECT, XT_LIBRARY)
 class MelodyModel:
     """Provides high-level access to a model.
 
@@ -579,8 +580,10 @@ class MelodyModel:
             diagram_cache.export_diagrams(tmp_project_dir)
 
     @classmethod
-    def from_model(cls, model: MelodyModel, element: t.Any) -> t.NoReturn:
-        raise TypeError("Cannot instantiate a model from another model")
+    def from_model(cls, model: MelodyModel, element: t.Any) -> MelodyModel:
+        if element is not model._element:
+            raise ValueError("'element' is not the model root")
+        return model
 
     @property
     def info(self) -> loader.ModelInfo:
