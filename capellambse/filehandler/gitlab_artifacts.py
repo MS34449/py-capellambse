@@ -274,7 +274,7 @@ class GitlabArtifactsFiles(FileHandler):
                 if i >= stop:
                     return
 
-            match = RE_LINK_NEXT.fullmatch(response.headers["Link"])
+            match = RE_LINK_NEXT.fullmatch(response.headers.get("Link", ""))
             if not match:
                 break
             next_url = match.group(0)
