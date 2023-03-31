@@ -15,7 +15,7 @@
     - git fetch
     - git reset --hard origin/$CI_COMMIT_BRANCH
 
-    - pip install "capellambse[cli] @ git+https://github.com/DSD-DBS/py-capellambse.git@$CAPELLAMBSE_REVISION"
+    - pip install "capellambse[cli] @ git+https://github.com/DSD-DBS/py-capellambse.git@filtering-cli"
 
     - python -m capellambse.extensions.filtering derive -m "${ENTRYPOINT:?}" -o derived-projects -p '{result.name}' "${derive_results[@]/#/--result=}" "$(if [[ -n $CAPELLA_DOCKERIMAGE ]]; then echo "--docker=$CAPELLA_DOCKERIMAGE"; else echo "--exe=$CAPELLA_EXECUTABLE"; fi)"
 
