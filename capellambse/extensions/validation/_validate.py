@@ -66,6 +66,7 @@ class Rule:
     id: str
     name: str
     rationale: str
+    category: Category
     actions: list[str]
     validator: Validator
     hyperlink_further_reading: str | None = None
@@ -93,17 +94,14 @@ class Results(dict[Rule, dict[helpers.UUIDString, Result]]):
 
         return super().__getitem__(key)
 
-    def by_uuid(self, uuid: helpers.UUIDString) -> Results:
+    def by_uuid(self, uuid: helpers.UUIDString) -> dict[Rule, Result]:
         """Filter the validation results by ``uuid``."""
-        return Results(
-            {
-                rule: {uid: r for uid, r in res.items() if uid == uuid}
-                for rule, res in self.items()
-            }
-        )
+        return {rule: res[uuid] for rule, res in self.items() if uuid in res}
 
-    def by_category(self, category: Category) -> Results:
+    def by_category(self, category: Category | str) -> Results:
         """Filter the validation results by ``category``."""
+        if isinstance(category, str):
+            category = Category[category]
         return Results(
             {
                 rule: {
@@ -157,7 +155,13 @@ def register_rule(
 
     def rule_decorator(rule: Validator) -> Validator:
         rule = Rule(
-            id, name, rationale, actions, rule, hyperlink_further_reading
+            id,
+            name,
+            rationale,
+            category,
+            actions,
+            rule,
+            hyperlink_further_reading,
         )
         VALIDATION_RULES[category].setdefault(type, []).append(rule)
         return rule

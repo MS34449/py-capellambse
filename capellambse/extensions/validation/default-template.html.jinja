@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<style type=text/css>
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 0.25rem 0.5rem; }
+  th { font-weight: bold; background: #eee; }
+
+  thead { position: sticky; top: 0; }
+
+  .small { font-size: 60%; }
+  .rule-required { color: #ff4f26; }
+  .rule-recommended { color: #dec342; }
+  .rule-suggested { color: #17a3d4; }
+</style>
+
+{%- set results = model.validate() %}
+<table>
+  <tr>
+    <th>Layer
+    <th>Total score <!-- percentage, clickable -->
+    <th>Applicable objects
+  <tr>
+    <th>Full model
+  <tr>
+    <th>OA layer
+  <tr>
+    <th>SA layer
+  <tr>
+    <th>LA layer
+  <tr>
+    <th>PA layer
+</table>
+
+<h1>Report for SA</h1>
+
+<table>
+  <tr>
+    <th>Layer
+    <th>Total score <!-- percentage, clickable -->
+    <th>Applicable objects
+  <tr>
+    <th>SA layer
+    <td>...
+    <td>...
+</table>
+
+<table>
+  <tr>
+    <th>Object type
+    <th>Total objects
+    <th>Objects that must be improved <!-- only required -->
+    <th>Objects that can be improved <!-- required + recommended -->
+  <tr>
+    <th>Capability <!-- click -> link to section -->
+    <td>...
+    <td>...
+
+  ...
+</table>
+
+<h1>Element details</h1>
+
+<h2>Capability</h2>
+<!-- TODO iterate over all object types with associated rules (how?) -->
+<p>
+  The model contains {{ num }} capabilities in total.<br>
+  The overall maturity level is {{ percent }}.<br>
+</p>
+<table>
+  <tr>
+    <th>Name
+    <th>Required
+    <th>Recommended
+    <th>Suggested
+    <th>Actions
+  {%- for obj in model.search("Capability") | sort(attribute="name") %}
+  {%- set obj_results = results.by_uuid(obj.uuid) %}
+  <tr>
+    <th>{{ obj.name }}
+    {%- for cat in ["REQUIRED", "RECOMMENDED", "SUGGESTED"] %}
+    {%- set total = results.by_category(cat).by_uuid(obj.uuid) | count %}
+    {%- set passed = results.by_category(cat).by_value(true).by_uuid(obj.uuid) | count %}
+    {%- set percent = (passed / total * 100)|round(1) if total > 0 else "—" %}
+    <td>{{passed}} / {{total}} ({{percent}}%)
+    {%- endfor %}
+    <td>
+      {%- for rule, result in obj_results.items() if result.value is false %}
+      {%- if loop.first %}
+      <ul>
+      {%- endif %}
+        <li>{{ rule.actions }}
+      {%- endfor %}
+  {% endfor %}
+</table>
+
+<h2>Validation results by rule</h2>
+<!-- TODO filter by applicability to this layer -->
+<table>
+  <tbody>
+    {%- for rule, objs in results.items() %}
+    {%- set failed = results.by_value(false)[rule] %}
+    <tr>
+      <th>{{ rule.id }}
+      <td>
+        <strong>{{ rule.name }}</strong><br>{{ rule.rationale }}<br>
+        <span class="rule-{{ rule.category.name|lower }}">{{ rule.category.name }}</span>
+      <td>{{ objs|count - failed|count }} / {{ objs|count }}
+      <td>
+        {%- for result in failed.values() | sort(attribute="name") %}
+        {%- set obj = model.by_uuid(result.uuid) %}
+        {%- if loop.first %}
+        <ul>
+        {%- endif %}
+          <li>
+            {{ obj.name|e }}
+            <span class="small">({{ obj.uuid }})</span>
+        {%- else %}
+        Everything passed!
+        {%- endfor %}
+    {%- endfor %}
+  <thead>
+    <tr>
+      <th>Rule ID
+      <th>Definition
+      <th>Passed
+      <th>Failed
+</table>
